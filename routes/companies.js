@@ -11,6 +11,8 @@ const Company = require("../models/company");
 
 const companyNewSchema = require("../schemas/companyNew.json");
 const companyUpdateSchema = require("../schemas/companyUpdate.json");
+const companyFilterSchema = require("../schemas/companyFilter.json");
+const { query } = require("express");
 
 const router = new express.Router();
 
@@ -41,13 +43,36 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  * Can filter on provided search filters:
  * - minEmployees
  * - maxEmployees
- * - nameLike (will find case-insensitive, partial matches)
+ * - name (will find case-insensitive, partial matches)
  *
  * Authorization required: none
  */
 
 router.get("/", async function (req, res, next) {
-  const companies = await Company.findAll();
+  const validator = jsonschema.validate(req.query, companyFilterSchema);
+  if (!validator.valid) {
+    const errs = validator.errors.map(e => e.stack);
+    throw new BadRequestError(errs);
+  }
+  let queryParams = {};
+
+  let { name, minEmployees, maxEmployees } = req.query;
+  
+  if (name) queryParams["name"] = name;
+  if (minEmployees) {
+    if (isNaN(Number(minEmployees))) {
+      throw new BadRequestError(`${minEmployees} is not a number`);
+    }
+    else queryParams["minEmployees"] = Number(minEmployees);
+  }
+  if (maxEmployees) {
+    if (isNaN(Number(maxEmployees))) {
+      throw new BadRequestError(`${maxEmployees} is not a number`);
+    }
+    else queryParams["maxEmployees"] = Number(maxEmployees);
+  }
+
+  const companies = await Company.findAll(queryParams);
   return res.json({ companies });
 });
 
