@@ -27,6 +27,8 @@ const router = express.Router();
  * Authorization required: login
  **/
 
+//TODO: ensureLoggedIn doesn't ensure that it's an admin
+
 router.post("/", ensureLoggedIn, async function (req, res, next) {
   const validator = jsonschema.validate(req.body, userNewSchema);
   if (!validator.valid) {
@@ -76,6 +78,8 @@ router.get("/:username", ensureLoggedIn, async function (req, res, next) {
  * Authorization required: login
  **/
 
+//TODO: ensureCorrectUser
+
 router.patch("/:username", ensureLoggedIn, async function (req, res, next) {
   const validator = jsonschema.validate(req.body, userUpdateSchema);
   if (!validator.valid) {
@@ -92,6 +96,8 @@ router.patch("/:username", ensureLoggedIn, async function (req, res, next) {
  *
  * Authorization required: login
  **/
+
+// TODO: ensureCorrectUser
 
 router.delete("/:username", ensureLoggedIn, async function (req, res, next) {
   await User.remove(req.params.username);
