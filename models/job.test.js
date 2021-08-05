@@ -86,66 +86,59 @@ describe("findAll", function () {
         id: expect.any(Number),
         title: "j3",
         salary: 300,
-        equity: "0.3",
+        equity: "0",
         companyHandle: "c3"
       }
     ]);
   });
 
-  // test("works: with name filter", async function () {
-  //   let testParams = {name: "1"}
-  //   let companies = await Company.findAll(testParams);
-  //   expect(companies).toEqual([
-  //     {
-  //       handle: "c1",
-  //       name: "C1",
-  //       description: "Desc1",
-  //       numEmployees: 1,
-  //       logoUrl: "http://c1.img",
-  //     }
-  //   ]);
-  // });
+  test("works: with title filter", async function () {
+    let testParams = {title: "1"}
+    let jobs = await Job.findAll(testParams);
+    expect(jobs).toEqual([
+      {
+        id: 1,
+        title: "j1",
+        salary: 100,
+        equity: "0.1",
+        companyHandle: "c1"
+      }
+    ]);
+  });
 
-  // test("works: with minEmployees filter", async function () {
-  //   let testParams = { minEmployees: 3 }
-  //   let companies = await Company.findAll(testParams);
-  //   expect(companies).toEqual([
-  //     {
-  //       handle: "c3",
-  //       name: "C3",
-  //       description: "Desc3",
-  //       numEmployees: 3,
-  //       logoUrl: "http://c3.img",
-  //     }
-  //   ]);
-  // });
+  test("works: with minSalary filter", async function () {
+    let testParams = { minSalary: 300 }
+    let jobs = await Job.findAll(testParams);
+    expect(jobs).toEqual([
+      {
+        id: 3,
+        title: "j3",
+        salary: 300,
+        equity: "0",
+        companyHandle: "c3"
+      }
+    ]);
+  });
 
-  // test("works: with multiple filters", async function () {
-  //   let testParams = { minEmployees: 2, maxEmployees: 3 }
-  //   let companies = await Company.findAll(testParams);
-  //   expect(companies).toEqual([
-  //     {
-  //       handle: "c2",
-  //       name: "C2",
-  //       description: "Desc2",
-  //       numEmployees: 2,
-  //       logoUrl: "http://c2.img",
-  //     },
-  //     {
-  //       handle: "c3",
-  //       name: "C3",
-  //       description: "Desc3",
-  //       numEmployees: 3,
-  //       logoUrl: "http://c3.img",
-  //     }
-  //   ]);
-  // });
+  test("works: with multiple filters", async function () {
+    let testParams = { minSalary: 200, hasEquity: true }
+    let jobs = await Job.findAll(testParams);
+    expect(jobs).toEqual([
+      {
+        id: 2,
+        title: "j2",
+        salary: 200,
+        equity: "0.2",
+        companyHandle: "c2"
+      }
+    ]);
+  });
 
-  // test("works: with no filter results", async function () {
-  //   let testParams = { name: "does_not_exist" }
-  //   let companies = await Company.findAll(testParams);
-  //   expect(companies).toEqual([]);
-  // });
+  test("works: with no filter results", async function () {
+    let testParams = { title: "does_not_exist" }
+    let jobs = await Job.findAll(testParams);
+    expect(jobs).toEqual([]);
+  });
 
 });
 

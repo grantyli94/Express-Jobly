@@ -257,6 +257,7 @@ describe("PATCH /companies/:handle", function () {
     });
   });
 });
+
 describe("PATCH /companies/:handle", function () {
   test("does not works for non-admin users", async function () {
     const resp = await request(app)
@@ -274,7 +275,6 @@ describe("PATCH /companies/:handle", function () {
         .send({
           name: "C1-new",
         });
-        console.log("HERE IS RESP", resp)
     expect(resp.statusCode).toEqual(401);
   });
 

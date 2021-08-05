@@ -49,24 +49,27 @@ router.post("/", ensureAdmin, async function (req, res, next) {
  */
 
 router.get("/", async function (req, res, next) {
-    // let queryParams = { ...req.query };
-    // let { minEmployees, maxEmployees } = queryParams;
+  let queryParams = { ...req.query };
+  let { minSalary, hasEquity } = queryParams;
 
-    // if (minEmployees) {
-    //     queryParams["minEmployees"] = Number(minEmployees);
-    // }
-    // if (maxEmployees) {
-    //     queryParams["maxEmployees"] = Number(maxEmployees);
-    // }
+  if (minSalary) {
+    queryParams["minSalary"] = Number(minSalary);
+  }
+  if (hasEquity === "true") {
+    queryParams["hasEquity"] = true;
+  }
+  else if (hasEquity === "false") {
+    queryParams["hasEquity"] = false;
+  }
 
-    // const validator = jsonschema.validate(queryParams, companyFilterSchema);
-    // if (!validator.valid) {
-    //     const errs = validator.errors.map(e => e.stack);
-    //     throw new BadRequestError(errs);
-    // }
+  const validator = jsonschema.validate(queryParams, jobFilterSchema);
+  if (!validator.valid) {
+    const errs = validator.errors.map(e => e.stack);
+    throw new BadRequestError(errs);
+  }
 
-    const jobs = await Job.findAll(); //TODO: add query params when ready to filter
-    return res.json({ jobs });
+  const jobs = await Job.findAll(queryParams);
+  return res.json({ jobs });
 });
 
 
@@ -82,5 +85,36 @@ router.get("/:id", async function (req, res, next) {
     return res.json({ job });
 });
 
+/** PATCH /[id] { fld1, fld2, ... } => { id }
+ *
+ * Patches job data.
+ *
+ * fields can be: { title, salary, equity }
+ *
+ * Returns { id, title, salary, equity, companyHandle }
+ *
+ * Authorization required: admin
+ */
+
+ router.patch("/:id", ensureAdmin, async function (req, res, next) {
+  const validator = jsonschema.validate(req.body, jobUpdateSchema);
+  if (!validator.valid) {
+    const errs = validator.errors.map(e => e.stack);
+    throw new BadRequestError(errs);
+  }
+
+  const job = await Job.update(req.params.id, req.body);
+  return res.json({ job });
+});
+
+/** DELETE /[id]  =>  { deleted: id }
+ *
+ * Authorization: admin
+ */
+
+ router.delete("/:id", ensureAdmin, async function (req, res, next) {
+  await Job.remove(req.params.id);
+  return res.json({ deleted: `job id: ${req.params.id}` });
+});
 
 module.exports = router;

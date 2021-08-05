@@ -81,7 +81,7 @@ async function commonBeforeAll() {
         VALUES (1,'j1', 100, $1, 'c1'),
                (2,'j2', 200, $2, 'c2'),
                (3,'j3', 300, $3, 'c3')`,
-    [0.100, 0.200, 0.300]);
+    [0.100, 0.200, 0]);
 }
 
 async function commonBeforeEach() {

@@ -42,8 +42,8 @@ class Job {
    * Returns [{ id, title, salary, equity, companyHandle }, ...]
    * */
 
-  static async findAll() { // add params={} back in later
-    // const { filter, values } = Company._sqlForCompanyFilter(params);
+  static async findAll(params={}) {
+    const { filter, values } = Job._sqlForJobFilter(params);
     const jobsRes = await db.query(
         `SELECT id, 
                 title,
@@ -51,7 +51,9 @@ class Job {
                 equity, 
                 company_handle AS "companyHandle"
           FROM jobs
-          ORDER BY title`);
+          ${filter}
+          ORDER BY title`,
+          values);
     
     return jobsRes.rows;
   }
@@ -130,6 +132,38 @@ class Job {
         const job = result.rows[0];
 
         if (!job) throw new NotFoundError(`No job: ${id}`);
+    }
+
+    /** Takes query parameters and converts to SQL filter logic
+     * 
+     * If no parameters are passed in, returns { filter: "", values: ""}
+     * 
+     * Else, returns { filter: WHERE ..., values: [...]}
+    */
+
+    static _sqlForJobFilter(params) {
+  
+      const keys = Object.keys(params);
+      if (keys.length === 0) return { filter: "", values: "" };
+  
+      const cols = keys.map((colName, idx) => {
+        if (colName === "title") return `title ILIKE $${idx + 1}`;
+        else if (colName === "minSalary") return `salary >= $${idx + 1}`;
+        else if (colName === "hasEquity" && params[colName] === true) {
+          return `equity > $${idx + 1}`;
+        }
+        else throw new BadRequestError("Can only filter title, minSalary, and hasEquity")
+      });
+  
+      return {
+        filter: "WHERE " + cols.join(" AND "),
+        values: Object.values(params).map(val => {
+          if (typeof val === "string") return `%${val}%`;
+          // singling out boolean hasEquity filter
+          if (val === true) return 0;
+          return val;
+        })
+      }
     }
 }
 
