@@ -100,3 +100,5 @@ describe("ensureAdmin", function () {
     ensureAdmin(req, res, next);
   });
 });
+
+// add ensurecorrectUser tests
