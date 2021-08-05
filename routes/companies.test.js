@@ -130,6 +130,56 @@ describe("GET /companies", function () {
     });
   });
 
+  test("successfully filters num of employees", async function () {
+    let maxEmployees = 1
+    const resp = await request(app).get(`/companies?maxEmployees=${maxEmployees}`);
+    expect(resp.body).toEqual({
+      companies:
+        [
+          {
+            handle: "c1",
+            name: "C1",
+            description: "Desc1",
+            numEmployees: 1,
+            logoUrl: "http://c1.img",
+          }
+        ],
+    });
+  });
+
+  test("throws error if received invalid properties", async function () {
+    let invalidParam = "BAD"
+    const resp = await request(app).get(`/companies?invalidParam=${invalidParam}`);
+    expect(resp.body.error).toEqual({
+      "message": [
+        "instance is not allowed to have the additional property \"invalidParam\""
+      ],
+      "status": 400
+    });
+  });
+
+  test("throws error if minEmployees is not a number", async function () {
+    let minEmployees = "BAD"
+    const resp = await request(app).get(`/companies?minEmployees=${minEmployees}`);
+    expect(resp.body.error).toEqual({
+      "message": [
+        "instance.minEmployees is not of a type(s) integer"
+      ],
+      "status": 400
+    });
+  });
+
+  test("throws error if maxEmployees is not a number", async function () {
+    let maxEmployees = "BAD"
+    const resp = await request(app).get(`/companies?maxEmployees=${maxEmployees}`);
+    expect(resp.body.error).toEqual({
+      "message": [
+        "instance.maxEmployees is not of a type(s) integer"
+      ],
+      "status": 400
+    });
+  });
+
   test("fails: test next() handler", async function () {
     // there's no normal failure event which will cause this route to fail ---
     // thus making it hard to test that the error-handler works with it. This

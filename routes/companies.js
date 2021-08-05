@@ -49,27 +49,20 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  */
 
 router.get("/", async function (req, res, next) {
-  const validator = jsonschema.validate(req.query, companyFilterSchema);
+  let queryParams = {...req.query};
+  let { minEmployees, maxEmployees } = queryParams;
+  
+  if (minEmployees) {
+    queryParams["minEmployees"] = Number(minEmployees);
+  }
+  if (maxEmployees) {
+    queryParams["maxEmployees"] = Number(maxEmployees);
+  }
+
+  const validator = jsonschema.validate(queryParams, companyFilterSchema);
   if (!validator.valid) {
     const errs = validator.errors.map(e => e.stack);
     throw new BadRequestError(errs);
-  }
-  let queryParams = {};
-
-  let { name, minEmployees, maxEmployees } = req.query;
-  
-  if (name) queryParams["name"] = name;
-  if (minEmployees) {
-    if (isNaN(Number(minEmployees))) {
-      throw new BadRequestError(`${minEmployees} is not a number`);
-    }
-    else queryParams["minEmployees"] = Number(minEmployees);
-  }
-  if (maxEmployees) {
-    if (isNaN(Number(maxEmployees))) {
-      throw new BadRequestError(`${maxEmployees} is not a number`);
-    }
-    else queryParams["maxEmployees"] = Number(maxEmployees);
   }
 
   const companies = await Company.findAll(queryParams);
