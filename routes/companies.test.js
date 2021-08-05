@@ -29,6 +29,7 @@ describe("POST /companies", function () {
     numEmployees: 10,
   };
 
+  // START HERE
   test("ok for users", async function () {
     const resp = await request(app)
         .post("/companies")
