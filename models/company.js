@@ -76,6 +76,8 @@ class Company {
    *   where jobs is [{ id, title, salary, equity, companyHandle }, ...]
    *
    * Throws NotFoundError if not found.
+   * 
+   *  TODO: INCORPORATE JOBS
    **/
 
   static async get(handle) {
