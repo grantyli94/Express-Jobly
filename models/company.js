@@ -77,21 +77,47 @@ class Company {
    *
    * Throws NotFoundError if not found.
    * 
-   *  TODO: INCORPORATE JOBS
    **/
 
   static async get(handle) {
     const companyRes = await db.query(
-        `SELECT handle,
-                name,
-                description,
-                num_employees AS "numEmployees",
-                logo_url AS "logoUrl"
-           FROM companies
-           WHERE handle = $1`,
+        `SELECT c.handle,
+                c.name,
+                c.description,
+                c.num_employees AS "numEmployees",
+                c.logo_url AS "logoUrl",
+                j.id,
+                j.title,
+                j.salary,
+                j.equity,
+                j.company_handle
+           FROM companies AS c
+           JOIN jobs AS j ON c.handle = j.company_handle
+           WHERE c.handle = $1`,
         [handle]);
+      
+    const jobsRes = await db.query(
+      `SELECT   id,
+                title,
+                salary,
+                equity,
+                company_handle AS "companyHandle"
+           FROM jobs 
+           WHERE company_handle = $1`,
+      [handle]);
 
-    const company = companyRes.rows[0];
+    let jobs = jobsRes.rows;
+
+    let result = companyRes.rows.map((c) => ({
+      handle: c.handle,
+      name: c.name,
+      description: c.description,
+      numEmployees: c.numEmployees,
+      logoUrl: c.logoUrl,
+      jobs
+    }));
+
+    let company = result[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
 
