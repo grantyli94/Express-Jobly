@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const { NotFoundError } = require("../expressError");
+const { NotFoundError, BadRequestError } = require("../expressError");
 const { sqlForPartialUpdate } = require("../helpers/sql");
 
 /** Related functions for companies. */
@@ -95,13 +95,13 @@ class Job {
    * Throws NotFoundError if not found.
    */
 
-  // validate that id can't be changed
   static async update(id, data) {
     const { setCols, values } = sqlForPartialUpdate(
       data,
       {
         companyHandle: "company_handle"
       });
+    if (setCols.includes("id")) throw new BadRequestError(`Cannot update id: ${id}`)
     const handleVarIdx = "$" + (values.length + 1);
 
     const querySql = `
@@ -144,8 +144,8 @@ class Job {
 
   static _sqlForJobFilter(params) {
     const keys = Object.keys(params);
-    // let initialData = { filter: "" , values: ""};
-    if (keys.length === 0) return { filter: "", values: "" };
+    const initialData = { filter: "" , values: ""};
+    if (keys.length === 0) return initialData;
 
     const { title, minSalary, hasEquity } = params;
     const whereParts = [];
@@ -160,13 +160,14 @@ class Job {
       values.push(minSalary);
       whereParts.push(`salary >= $${values.length}`);
     }
-    // add comment
+    // if hasEquity === true, then we push 0 to values array
+    // to include equity > 0 in whereParts
     if (hasEquity) {
       values.push(0);
       whereParts.push(`equity > $${values.length}`);
     }
 
-    if (whereParts.length === 0) return { filter: "", values: "" };
+    if (whereParts.length === 0) return initialData;
 
     return {
       filter: "WHERE " + whereParts.join(" AND "),

@@ -52,15 +52,14 @@ router.get("/", async function (req, res, next) {
   let queryParams = { ...req.query };
   let { minSalary, hasEquity } = queryParams;
 
-  // use dot notation
   if (minSalary) {
-    queryParams["minSalary"] = Number(minSalary);
+    queryParams.minSalary = Number(minSalary);
   }
   if (hasEquity === "true") {
-    queryParams["hasEquity"] = true;
+    queryParams.hasEquity = true;
   }
   else if (hasEquity === "false") {
-    queryParams["hasEquity"] = false;
+    queryParams.hasEquity = false;
   }
 
   const validator = jsonschema.validate(queryParams, jobFilterSchema);

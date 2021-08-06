@@ -323,6 +323,15 @@ describe("update", function () {
       expect(err instanceof BadRequestError).toBeTruthy();
     }
   });
+
+  test("bad request when trying to update id", async function () {
+    try {
+      await Job.update(1, {id: 1000});
+      fail();
+    } catch (err) {
+      expect(err instanceof BadRequestError).toBeTruthy();
+    }
+  });
 });
 
 /************************************** remove */
