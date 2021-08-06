@@ -106,9 +106,9 @@ class Company {
            WHERE company_handle = $1`,
       [handle]);
 
-    let jobs = jobsRes.rows;
+    const jobs = jobsRes.rows;
 
-    let result = companyRes.rows.map((c) => ({
+    const result = companyRes.rows.map((c) => ({
       handle: c.handle,
       name: c.name,
       description: c.description,
@@ -117,7 +117,7 @@ class Company {
       jobs
     }));
 
-    let company = result[0];
+    const company = result[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
 
@@ -185,34 +185,36 @@ class Company {
 */
 
   static _sqlForCompanyFilter(params) {
-    // const { minEmployees, maxEmployees, name } = params;
-    // let values = [];
-    // if (minEmployees !== undefined) {
-    //   values.push(minEmployees);
-    //   whereParts.push(`num_employees >= $${values.length}`)
-    // }
-
-
     const keys = Object.keys(params);
     if (keys.length === 0) return { filter: "", values: "" };
-
-    if (params["minEmployees"] > params["maxEmployees"]) {
+    
+    const { minEmployees, maxEmployees, name } = params;
+    
+    if (minEmployees > maxEmployees) {
       throw new BadRequestError("Impossible min and max filters");
     }
+    
+    const values = [];
+    const whereParts = [];
 
-    const cols = keys.map((colName, idx) => {
-      if (colName === "name") return `name ILIKE $${idx + 1}`;
-      else if (colName === "minEmployees") return `num_employees >= $${idx + 1}`;
-      else if (colName === "maxEmployees") return `num_employees <= $${idx + 1}`;
-      else throw new BadRequestError("Can only filter name, minEmployees, and maxEmployees")
-    });
+    if (minEmployees !== undefined) {
+      values.push(minEmployees);
+      whereParts.push(`num_employees >= $${values.length}`)
+    }
+    if (maxEmployees !== undefined) {
+      values.push(maxEmployees);
+      whereParts.push(`num_employees <= $${values.length}`)
+    }
+    if (name !== undefined) {
+      values.push(`%${name}%`);
+      whereParts.push(`name ILIKE $${values.length}`)
+    }
+
+    if (whereParts.length === 0) return { filter: "", values: "" };
 
     return {
-      filter: "WHERE " + cols.join(" AND "),
-      values: Object.values(params).map(val => {
-        if (typeof val === "string") return `%${val}%`;
-        return val;
-      })
+      filter: "WHERE " + whereParts.join(" AND "),
+      values
     }
   }
 }

@@ -57,7 +57,10 @@ function ensureAdmin(req, res, next) {
   }
 }
 
-// TODO: Doc String
+/** Middleware to use when user must be an admin or the correct user.
+ *
+ * If not, raises Unauthorized.
+ */
 
 function ensureCorrectUserOrAdmin(req, res, next) {
   let username = req.params.username;

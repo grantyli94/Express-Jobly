@@ -49,17 +49,6 @@ describe("create", function () {
             },
         ]);
     });
-
-    // TODO: double check 
-    // test("bad request with dupe", async function () {
-    //     try {
-    //         await Company.create(newCompany);
-    //         await Company.create(newCompany);
-    //         fail();
-    //     } catch (err) {
-    //         expect(err instanceof BadRequestError).toBeTruthy();
-    //     }
-    // });
 });
 
 /************************************** findAll */
@@ -120,6 +109,75 @@ describe("findAll", function () {
     ]);
   });
 
+  test("works: with minSalary filter", async function () {
+    let testParams = { minSalary: 300 }
+    let jobs = await Job.findAll(testParams);
+    expect(jobs).toEqual([
+      {
+        id: 3,
+        title: "j3",
+        salary: 300,
+        equity: "0",
+        companyHandle: "c3"
+      }
+    ]);
+  });
+
+  test("works: with hasEquity = true", async function () {
+    let testParams = { hasEquity: true }
+    let jobs = await Job.findAll(testParams);
+    expect(jobs).toEqual([
+      {
+        id: 1,
+        title: "j1",
+        salary: 100,
+        equity: "0.1",
+        companyHandle: "c1"
+      },
+      {
+        id: 2,
+        title: "j2",
+        salary: 200,
+        equity: "0.2",
+        companyHandle: "c2"
+      }
+    ]);
+  });
+
+  test("works: with hasEquity = false", async function () {
+    let testParams = { hasEquity: false }
+    let jobs = await Job.findAll(testParams);
+    expect(jobs).toEqual([
+      {
+        id: 1,
+        title: "j1",
+        salary: 100,
+        equity: "0.1",
+        companyHandle: "c1"
+      },
+      {
+        id: 2,
+        title: "j2",
+        salary: 200,
+        equity: "0.2",
+        companyHandle: "c2"
+      },
+      {
+        id: 3,
+        title: "j3",
+        salary: 300,
+        equity: "0",
+        companyHandle: "c3"
+      }
+    ]);
+  });
+
+  test("works: with no filter results", async function () {
+    let testParams = { title: "does_not_exist" }
+    let jobs = await Job.findAll(testParams);
+    expect(jobs).toEqual([]);
+  });
+
   test("works: with multiple filters", async function () {
     let testParams = { minSalary: 200, hasEquity: true }
     let jobs = await Job.findAll(testParams);
@@ -133,13 +191,34 @@ describe("findAll", function () {
       }
     ]);
   });
-
-  test("works: with no filter results", async function () {
-    let testParams = { title: "does_not_exist" }
-    let jobs = await Job.findAll(testParams);
-    expect(jobs).toEqual([]);
+  
+  test("works: with non-existent filters", async function () {
+    let badParams = { badParam: "does_not_exist" }
+    let jobs = await Job.findAll(badParams);
+    expect(jobs).toEqual([
+      {
+        id: 1,
+        title: "j1",
+        salary: 100,
+        equity: "0.1",
+        companyHandle: "c1"
+      },
+      {
+        id: 2,
+        title: "j2",
+        salary: 200,
+        equity: "0.2",
+        companyHandle: "c2"
+      },
+      {
+        id: 3,
+        title: "j3",
+        salary: 300,
+        equity: "0",
+        companyHandle: "c3"
+      }
+    ]);
   });
-
 });
 
 /************************************** get */
@@ -264,4 +343,31 @@ describe("remove", function () {
             expect(err instanceof NotFoundError).toBeTruthy();
         }
     });
+});
+
+/************************************** sqlForCompanyFilter */
+
+describe("SQL filter for get all queries", function () {
+  const testParams = { "title": "test", "minSalary": 100, "hasEquity": true };
+  const invalidParams = { "invalid": "param" };
+
+  test("builds correct WHERE clause and values for filtering", function () {
+    const { filter, values } = Job._sqlForJobFilter(testParams);
+
+    expect(filter).toEqual(`WHERE title ILIKE $1 AND salary >= $2 AND equity > $3`);
+    expect(values).toEqual(['%test%', 100, 0]);
+  });
+
+  test("returns empty filter and values if params is empty", function () {
+    const { filter, values } = Job._sqlForJobFilter({});
+
+    expect(filter).toEqual("");
+    expect(values).toEqual("");
+  });
+
+  test("throws error when filtering with a property that is not allowed", function () {
+    const { filter, values } = Job._sqlForJobFilter({invalidParams});
+    expect(filter).toEqual("");
+    expect(values).toEqual("");
+  });
 });

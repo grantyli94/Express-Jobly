@@ -52,6 +52,7 @@ router.get("/", async function (req, res, next) {
   let queryParams = { ...req.query };
   let { minSalary, hasEquity } = queryParams;
 
+  // use dot notation
   if (minSalary) {
     queryParams["minSalary"] = Number(minSalary);
   }

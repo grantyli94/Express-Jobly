@@ -170,6 +170,37 @@ describe("GET /jobs", function () {
     });
   });
 
+  test("works if hasEquity is false", async function () {
+    let hasEquity = false;
+    const resp = await request(app).get(`/jobs?hasEquity=${hasEquity}`);
+    expect(resp.body).toEqual({
+      jobs:
+        [
+          {
+            id: 1,
+            title: "j1",
+            salary: 100,
+            equity: "0.1",
+            companyHandle: "c1",
+          },
+          {
+            id: 2,
+            title: "j2",
+            salary: 200,
+            equity: "0.2",
+            companyHandle: "c2",
+          },
+          {
+            id: 3,
+            title: "j3",
+            salary: 300,
+            equity: "0",
+            companyHandle: "c3",
+          }
+        ],
+    });
+  });
+
   test("throws error if received invalid properties", async function () {
     let invalidParam = "BAD"
     const resp = await request(app).get(`/jobs?invalidParam=${invalidParam}`);
